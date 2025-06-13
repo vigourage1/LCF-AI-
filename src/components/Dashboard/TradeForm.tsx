@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calculator } from 'lucide-react';
+import { Plus, Calculator, TrendingUp, TrendingDown } from 'lucide-react';
 import { Trade } from '../../types';
 import { formatCurrency } from '../../utils/calculations';
 import toast from 'react-hot-toast';
@@ -107,26 +107,34 @@ const TradeForm: React.FC<TradeFormProps> = ({ onAddTrade, sessionId }) => {
             Entry Side
           </label>
           <div className="flex space-x-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="Long"
-                checked={entrySide === 'Long'}
-                onChange={(e) => setEntrySide(e.target.value as 'Long' | 'Short')}
-                className="mr-2 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-slate-300">Long</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="Short"
-                checked={entrySide === 'Short'}
-                onChange={(e) => setEntrySide(e.target.value as 'Long' | 'Short')}
-                className="mr-2 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-slate-300">Short</span>
-            </label>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setEntrySide('Long')}
+              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
+                entrySide === 'Long'
+                  ? 'border-green-500 bg-green-500/20 text-green-400'
+                  : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-green-500/50'
+              }`}
+            >
+              <TrendingUp className="w-5 h-5 mr-2" />
+              Long
+            </motion.button>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setEntrySide('Short')}
+              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
+                entrySide === 'Short'
+                  ? 'border-red-500 bg-red-500/20 text-red-400'
+                  : 'border-slate-600 bg-slate-700 text-slate-300 hover:border-red-500/50'
+              }`}
+            >
+              <TrendingDown className="w-5 h-5 mr-2" />
+              Short
+            </motion.button>
           </div>
         </div>
 

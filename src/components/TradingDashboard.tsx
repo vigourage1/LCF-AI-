@@ -11,7 +11,12 @@ import {
   Target,
   BarChart3,
   PieChart,
-  Trash2
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  MessageCircle,
+  FileText,
+  Bot
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { tradingService } from '../services/tradingService';
@@ -23,6 +28,9 @@ import StatsCard from './Dashboard/StatsCard';
 import TradeForm from './Dashboard/TradeForm';
 import TradesList from './Dashboard/TradesList';
 import PerformanceChart from './Dashboard/PerformanceChart';
+import SydneyGreeting from './Dashboard/SydneyGreeting';
+import ChatInterface from './AI/ChatInterface';
+import SessionSummaryModal from './Dashboard/SessionSummaryModal';
 import toast from 'react-hot-toast';
 
 const TradingDashboard: React.FC = () => {
@@ -45,6 +53,9 @@ const TradingDashboard: React.FC = () => {
   const [showNewSessionForm, setShowNewSessionForm] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
   const [newSessionCapital, setNewSessionCapital] = useState('');
+  const [sessionsExpanded, setSessionsExpanded] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -187,6 +198,14 @@ const TradingDashboard: React.FC = () => {
     }
   };
 
+  const handleSwitchSession = (sessionId: string) => {
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      setCurrentSession(session);
+      toast.success(`Switched to ${session.name}`);
+    }
+  };
+
   const handleExportJSON = () => {
     if (!currentSession) return;
     exportToJSON(currentSession, trades, stats);
@@ -245,6 +264,8 @@ const TradingDashboard: React.FC = () => {
     }
   };
 
+  const displayedSessions = sessionsExpanded ? sessions : sessions.slice(0, 1);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -270,7 +291,14 @@ const TradingDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-slate-300">Welcome, {user?.email}</span>
+              <button
+                onClick={() => setShowChat(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                Chat with Sydney
+              </button>
+              <span className="text-slate-300">Welcome, {user?.email?.split('@')[0]}</span>
               <button
                 onClick={handleSignOut}
                 className="flex items-center px-4 py-2 text-slate-300 hover:text-white transition-colors"
@@ -283,6 +311,9 @@ const TradingDashboard: React.FC = () => {
         </div>
       </header>
 
+      {/* Sydney Greeting */}
+      {user && <SydneyGreeting user={user} onOpenChat={() => setShowChat(true)} />}
+
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
@@ -291,12 +322,22 @@ const TradingDashboard: React.FC = () => {
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Sessions</h2>
-                <button
-                  onClick={() => setShowNewSessionForm(true)}
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  {sessions.length > 1 && (
+                    <button
+                      onClick={() => setSessionsExpanded(!sessionsExpanded)}
+                      className="p-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      {sessionsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowNewSessionForm(true)}
+                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {showNewSessionForm && (
@@ -342,8 +383,8 @@ const TradingDashboard: React.FC = () => {
                 </motion.form>
               )}
 
-              <div className="space-y-3">
-                {sessions.map((session) => {
+              <div className={`space-y-3 ${sessions.length > 3 && sessionsExpanded ? 'max-h-96 overflow-y-auto' : ''}`}>
+                {displayedSessions.map((session) => {
                   const sessionStats = calculateSessionStats(
                     currentSession?.id === session.id ? trades : [], 
                     session.initial_capital
@@ -361,6 +402,15 @@ const TradingDashboard: React.FC = () => {
                   );
                 })}
               </div>
+
+              {sessions.length > 1 && !sessionsExpanded && (
+                <button
+                  onClick={() => setSessionsExpanded(true)}
+                  className="w-full mt-3 text-sm text-slate-400 hover:text-slate-300 transition-colors"
+                >
+                  Show {sessions.length - 1} more sessions
+                </button>
+              )}
             </div>
 
             {/* Export/Import */}
@@ -368,6 +418,13 @@ const TradingDashboard: React.FC = () => {
               <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
                 <h3 className="text-lg font-semibold text-white mb-4">Data Management</h3>
                 <div className="space-y-3">
+                  <button
+                    onClick={() => setShowSummaryModal(true)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Generate Summary
+                  </button>
                   <button
                     onClick={handleExportJSON}
                     className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -471,6 +528,26 @@ const TradingDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Chat Interface */}
+      <ChatInterface
+        isOpen={showChat}
+        onClose={() => setShowChat(false)}
+        currentSession={currentSession}
+        trades={trades}
+        sessions={sessions}
+        onSwitchSession={handleSwitchSession}
+      />
+
+      {/* Session Summary Modal */}
+      {currentSession && (
+        <SessionSummaryModal
+          isOpen={showSummaryModal}
+          onClose={() => setShowSummaryModal(false)}
+          session={currentSession}
+          trades={trades}
+        />
+      )}
     </div>
   );
 };

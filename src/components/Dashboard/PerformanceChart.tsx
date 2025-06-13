@@ -48,8 +48,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
   ].filter(item => item.value > 0);
 
   const COLORS = {
-    Profits: '#3B82F6', // Blue
-    Losses: '#8B5CF6',  // Purple
+    Profits: '#10B981', // Green
+    Losses: '#EF4444',  // Red
   };
 
   if (trades.length === 0) {
@@ -63,7 +63,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-lg">
+        <div className="bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl backdrop-blur-sm">
           <p className="text-slate-300 text-sm">
             <span className="font-medium">{payload[0].payload.name}:</span>
           </p>
@@ -82,7 +82,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
   const CustomLineTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-lg">
+        <div className="bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl backdrop-blur-sm">
           <p className="text-slate-300 text-sm">Trade {label}</p>
           <p className="text-white font-semibold">
             Capital: {formatCurrency(payload[0].value)}
@@ -96,7 +96,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
   return (
     <div className="space-y-6">
       {/* Capital Growth Chart */}
-      <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+      <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-slate-600 transition-all duration-300">
         <h3 className="text-lg font-semibold text-white mb-4">Capital Growth</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -112,14 +112,19 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
                 fontSize={12}
                 tickFormatter={(value) => `$${value.toLocaleString()}`}
               />
-              <Tooltip content={<CustomLineTooltip />} />
+              <Tooltip 
+                content={<CustomLineTooltip />}
+                cursor={{ stroke: '#3B82F6', strokeWidth: 1, strokeDasharray: '5 5' }}
+              />
               <Line
                 type="monotone"
                 dataKey="capital"
                 stroke="#3B82F6"
-                strokeWidth={2}
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, fill: '#3B82F6' }}
+                strokeWidth={3}
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7, fill: '#3B82F6', stroke: '#1E40AF', strokeWidth: 2 }}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -127,7 +132,7 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
       </div>
 
       {/* P/L Distribution Pie Chart */}
-      <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+      <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-slate-600 transition-all duration-300">
         <h3 className="text-lg font-semibold text-white mb-4">Profit/Loss Distribution</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -140,6 +145,8 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
                 outerRadius={100}
                 paddingAngle={5}
                 dataKey="value"
+                animationBegin={0}
+                animationDuration={1200}
               >
                 {pieData.map((entry, index) => (
                   <Cell 
@@ -148,7 +155,10 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ trades, initialCapi
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip 
+                content={<CustomTooltip />}
+                cursor={{ fill: 'transparent' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
